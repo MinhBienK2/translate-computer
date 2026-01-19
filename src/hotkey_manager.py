@@ -1,5 +1,5 @@
 """
-Module quản lý hotkey và lấy text đã chọn từ clipboard
+Module for managing hotkey and getting selected text from clipboard
 """
 import keyboard
 import pyperclip
@@ -7,73 +7,97 @@ import time
 
 
 class HotkeyManager:
-    """Quản lý hotkey Alt+E và lấy text đã chọn"""
+    """Manages hotkey and gets selected text"""
     
-    def __init__(self, callback):
+    def __init__(self, callback, hotkey='alt+e'):
         """
-        Khởi tạo HotkeyManager
+        Initialize HotkeyManager
         
         Args:
-            callback: Hàm callback được gọi khi nhấn Alt+E
+            callback: Callback function called when hotkey is pressed
+            hotkey: Hotkey combination (e.g., 'alt+e', 'ctrl+shift+t')
         """
         self.callback = callback
+        self.hotkey = hotkey
         self.is_running = False
     
     def get_selected_text(self):
         """
-        Lấy text đã chọn bằng cách copy vào clipboard
+        Get selected text by copying to clipboard
         
         Returns:
-            str: Text đã chọn, hoặc None nếu không có text nào được chọn
+            str: Selected text, or None if no text is selected
         """
-        # Lưu clipboard hiện tại
+        # Save current clipboard
         old_clipboard = pyperclip.paste()
         
         try:
-            # Copy text đã chọn (Ctrl+C)
+            # Copy selected text (Ctrl+C)
             keyboard.send('ctrl+c')
-            time.sleep(0.1)  # Đợi clipboard cập nhật
+            time.sleep(0.2)  # Wait for clipboard to update
             
-            # Lấy text từ clipboard
+            # Get text from clipboard
             selected_text = pyperclip.paste()
             
-            # Khôi phục clipboard cũ nếu text không thay đổi
+            # Restore old clipboard if text hasn't changed
             if selected_text == old_clipboard:
                 return None
             
-            # Kiểm tra xem có text hợp lệ không
+            # Check if there's valid text
             if selected_text and selected_text.strip():
                 return selected_text.strip()
             
             return None
             
         except Exception as e:
-            print(f"Lỗi khi lấy text đã chọn: {e}")
+            print(f"Error getting selected text: {e}")
             return None
         finally:
-            # Khôi phục clipboard cũ
+            # Restore old clipboard
             try:
                 pyperclip.copy(old_clipboard)
             except:
                 pass
     
     def on_hotkey_pressed(self):
-        """Xử lý khi nhấn hotkey Alt+E"""
+        """Handle when hotkey is pressed"""
         selected_text = self.get_selected_text()
         if selected_text:
             self.callback(selected_text)
     
     def start(self):
-        """Bắt đầu lắng nghe hotkey"""
+        """Start listening for hotkey"""
         if not self.is_running:
-            keyboard.add_hotkey('alt+e', self.on_hotkey_pressed)
-            self.is_running = True
-            print("Hotkey Alt+E đã được kích hoạt. Nhấn Alt+E để dịch text đã chọn.")
+            try:
+                keyboard.add_hotkey(self.hotkey, self.on_hotkey_pressed)
+                self.is_running = True
+                hotkey_display = self.hotkey.upper().replace('+', '+')
+                print(f"✓ Hotkey {hotkey_display} activated. Press {hotkey_display} to translate selected text.")
+            except Exception as e:
+                print(f"✗ Error registering hotkey '{self.hotkey}': {e}")
+                print("Please check if the hotkey format is correct or try running as Administrator.")
+                raise
+    
+    def update_hotkey(self, new_hotkey):
+        """
+        Update hotkey combination
+        
+        Args:
+            new_hotkey: New hotkey combination (e.g., 'alt+e', 'ctrl+shift+t')
+        """
+        was_running = self.is_running
+        if was_running:
+            self.stop()
+        
+        self.hotkey = new_hotkey.lower()
+        
+        if was_running:
+            self.start()
     
     def stop(self):
-        """Dừng lắng nghe hotkey"""
+        """Stop listening for hotkey"""
         if self.is_running:
             keyboard.unhook_all()
             self.is_running = False
-            print("Hotkey đã được tắt.")
+            print("Hotkey has been stopped.")
 

@@ -1,5 +1,5 @@
 """
-Module dịch thuật và lấy thông tin từ điển
+Module for translation and getting dictionary information
 """
 from deep_translator import GoogleTranslator
 import requests
@@ -7,15 +7,15 @@ import json
 
 
 class Translator:
-    """Quản lý dịch thuật và thông tin từ điển"""
+    """Manages translation and dictionary information"""
     
     def __init__(self, source_lang='en', target_lang='vi'):
         """
-        Khởi tạo Translator
+        Initialize Translator
         
         Args:
-            source_lang: Ngôn ngữ nguồn (mặc định: 'en')
-            target_lang: Ngôn ngữ đích (mặc định: 'vi')
+            source_lang: Source language (default: 'en')
+            target_lang: Target language (default: 'vi')
         """
         self.source_lang = source_lang
         self.target_lang = target_lang
@@ -23,31 +23,31 @@ class Translator:
     
     def detect_language(self, text):
         """
-        Tự động phát hiện ngôn ngữ của text
+        Automatically detect the language of text
         
         Args:
-            text: Text cần phát hiện ngôn ngữ
+            text: Text to detect language for
             
         Returns:
-            str: Mã ngôn ngữ (ví dụ: 'en', 'vi')
+            str: Language code (e.g., 'en', 'vi')
         """
         try:
             detected = GoogleTranslator().detect(text)
             return detected
         except:
-            return 'en'  # Mặc định là tiếng Anh
+            return 'en'  # Default to English
     
     def translate(self, text, source_lang=None, target_lang=None):
         """
-        Dịch text sang ngôn ngữ đích
+        Translate text to target language
         
         Args:
-            text: Text cần dịch
-            source_lang: Ngôn ngữ nguồn (None để tự động phát hiện)
-            target_lang: Ngôn ngữ đích (None để dùng mặc định)
+            text: Text to translate
+            source_lang: Source language (None to auto-detect)
+            target_lang: Target language (None to use default)
             
         Returns:
-            str: Text đã dịch
+            str: Translated text
         """
         try:
             if source_lang is None:
@@ -56,7 +56,7 @@ class Translator:
             if target_lang is None:
                 target_lang = self.target_lang
             
-            # Nếu ngôn ngữ nguồn và đích giống nhau, không cần dịch
+            # If source and target languages are the same, no need to translate
             if source_lang == target_lang:
                 return text
             
@@ -64,19 +64,19 @@ class Translator:
             translated = translator.translate(text)
             return translated
         except Exception as e:
-            print(f"Lỗi khi dịch: {e}")
+            print(f"Error translating: {e}")
             return text
     
     def get_word_definitions(self, word, source_lang='en'):
         """
-        Lấy định nghĩa và các nghĩa của từ (sử dụng Free Dictionary API)
+        Get word definitions and meanings (using Free Dictionary API)
         
         Args:
-            word: Từ cần tra cứu
-            source_lang: Ngôn ngữ của từ
+            word: Word to look up
+            source_lang: Language of the word
             
         Returns:
-            dict: Thông tin định nghĩa với các parts of speech
+            dict: Definition information with parts of speech
         """
         try:
             # Free Dictionary API
@@ -89,7 +89,7 @@ class Translator:
                     meanings = {}
                     entry = data[0]
                     
-                    # Lấy các nghĩa theo từng loại từ
+                    # Get meanings by part of speech
                     if 'meanings' in entry:
                         for meaning in entry['meanings']:
                             part_of_speech = meaning.get('partOfSpeech', '')
@@ -109,33 +109,33 @@ class Translator:
                         'meanings': meanings
                     }
         except Exception as e:
-            print(f"Lỗi khi lấy định nghĩa: {e}")
+            print(f"Error getting definitions: {e}")
         
         return None
     
     def get_translation_info(self, text):
         """
-        Lấy đầy đủ thông tin dịch và định nghĩa cho text
+        Get complete translation and definition information for text
         
         Args:
-            text: Text cần dịch
+            text: Text to translate
             
         Returns:
-            dict: Thông tin đầy đủ bao gồm translation, definitions, etc.
+            dict: Complete information including translation, definitions, etc.
         """
-        # Phát hiện ngôn ngữ
+        # Detect language
         detected_lang = self.detect_language(text)
         
-        # Xác định ngôn ngữ đích (nếu là tiếng Anh thì dịch sang tiếng Việt, ngược lại)
+        # Determine target language (if English, translate to Vietnamese, otherwise)
         if detected_lang == 'vi':
             target_lang = 'en'
         else:
             target_lang = 'vi'
         
-        # Dịch text
+        # Translate text
         translated = self.translate(text, source_lang=detected_lang, target_lang=target_lang)
         
-        # Lấy định nghĩa nếu là một từ đơn (không có khoảng trắng)
+        # Get definitions if it's a single word (no spaces)
         definitions = None
         if len(text.split()) == 1 and detected_lang == 'en':
             definitions = self.get_word_definitions(text, detected_lang)

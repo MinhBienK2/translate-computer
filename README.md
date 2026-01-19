@@ -1,136 +1,218 @@
-# Translate Computer - Ứng dụng dịch thuật nhanh
+# Translate Computer - Fast Translation Application
 
-Ứng dụng cho phép bạn chọn text bất kỳ trên máy tính và nhấn **Alt+E** để dịch nhanh với popup hiển thị kết quả.
+An application that allows you to select any text on your computer and press **Alt+E** to quickly translate with a popup displaying the results.
 
-## Tính năng
+## Features
 
-- ✅ Chọn text ở bất kỳ đâu trên máy tính (Cursor, Word, Browser, ...)
-- ✅ Nhấn **Alt+E** để dịch ngay lập tức
-- ✅ Popup hiển thị:
-  - Text gốc và bản dịch
-  - Phát âm (text-to-speech) cho cả text gốc và bản dịch
-  - Định nghĩa chi tiết (nếu là từ đơn tiếng Anh)
-  - Các nghĩa theo từng loại từ (noun, verb, adjective, adverb)
-- ✅ Tự động phát hiện ngôn ngữ
-- ✅ Giao diện đẹp, dễ sử dụng
+- ✅ Select text anywhere on your computer (Cursor, Word, Browser, ...)
+- ✅ Press **Alt+E** to translate instantly
+- ✅ Popup displays:
+  - Original text and translation
+  - Pronunciation (text-to-speech) for both original and translated text
+  - Detailed definitions (if it's a single English word)
+  - Meanings by word type (noun, verb, adjective, adverb)
+- ✅ Automatic language detection
+- ✅ Beautiful, user-friendly interface
 
-## Cài đặt
+## Installation
 
-### 1. Cài đặt Python
+### 1. Install Python
 
-Đảm bảo bạn đã cài Python 3.7 trở lên.
+Make sure you have Python 3.7 or higher installed.
 
-### 2. Cài đặt dependencies
+### 2. Install uv
 
-```bash
-pip install -r requirements.txt
+`uv` is an extremely fast package manager and project manager for Python.
+
+**On Windows (PowerShell):**
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-**Lưu ý trên Windows:**
-- Có thể cần chạy PowerShell/CMD với quyền Administrator để cài `keyboard` library
-- Nếu gặp lỗi với `keyboard`, thử: `pip install keyboard --user`
-
-## Sử dụng
-
-### Chạy ứng dụng
-
+**On Linux/Mac:**
 ```bash
-python main.py
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-### Cách sử dụng
+Or install via pip:
+```bash
+pip install uv
+```
 
-1. **Chọn text**: Dùng chuột chọn text bất kỳ trên máy tính (ví dụ: trong Cursor, Word, Browser, ...)
-2. **Nhấn Alt+E**: Ngay lập tức popup sẽ hiện lên với kết quả dịch
-3. **Nghe phát âm**: Click vào icon 🔊 để nghe phát âm
-4. **Đóng popup**: 
-   - Nhấn **Escape**
-   - Click vào nút **✕**
-   - Click ra ngoài popup
+See more at: https://github.com/astral-sh/uv
 
-### Thoát ứng dụng
+### 3. Install dependencies
 
-Nhấn **Ctrl+C** trong terminal để thoát.
+`uv` will automatically create a virtual environment and install all dependencies:
 
-## Cấu trúc thư mục
+```bash
+uv sync
+```
+
+Or if you want to use `requirements.txt`:
+```bash
+uv pip install -r requirements.txt
+```
+
+**Note on Windows:**
+- You may need to run PowerShell/CMD as Administrator to install the `keyboard` library
+- If you encounter errors with `keyboard`, try: `uv pip install keyboard --user`
+
+## Usage
+
+### Run the application
+
+With `uv`, you don't need to activate a virtual environment. Just run:
+
+```bash
+uv run python main.py
+```
+
+Or if you've already synced dependencies:
+```bash
+uv run main.py
+```
+
+**Note:** `uv run` will automatically use the created virtual environment.
+
+### How to use
+
+1. **Select text**: Use your mouse to select any text on your computer (e.g., in Cursor, Word, Browser, ...)
+2. **Press hotkey** (default: **Alt+E**): The popup will immediately appear with the translation result
+3. **Listen to pronunciation**: Click the 🔊 icon to hear the pronunciation
+4. **Close popup**: 
+   - Press **Escape**
+   - Click the **✕** button
+   - Click outside the popup
+
+### Configuration
+
+You can customize the application by editing the `config.json` file (created automatically on first run). If the file doesn't exist, copy `config.json.example` to `config.json`.
+
+**Available settings:**
+
+```json
+{
+    "hotkey": "alt+e",           // Hotkey combination (e.g., "alt+e", "ctrl+shift+t")
+    "source_language": "en",     // Default source language
+    "target_language": "vi",      // Default target language
+    "popup_position": "top-right", // Popup position (not yet implemented)
+    "popup_width": 450            // Popup width in pixels
+}
+```
+
+**Hotkey format:**
+- Use `+` to combine keys: `"alt+e"`, `"ctrl+shift+t"`, `"ctrl+alt+q"`
+- Supported modifiers: `alt`, `ctrl`, `shift`, `win`
+- Supported keys: letters (`a-z`), numbers (`0-9`), function keys (`f1-f12`), etc.
+
+**Example configurations:**
+- `"alt+e"` - Alt + E (default)
+- `"ctrl+shift+t"` - Ctrl + Shift + T
+- `"ctrl+alt+q"` - Ctrl + Alt + Q
+- `"f9"` - Function key F9
+
+**Note:** After changing the config file, restart the application for changes to take effect.
+
+### Exit the application
+
+Press **Ctrl+C** in the terminal to exit.
+
+## Directory Structure
 
 ```
 translate-computer/
 ├── src/
 │   ├── __init__.py
-│   ├── app.py              # Module chính quản lý ứng dụng
-│   ├── hotkey_manager.py   # Quản lý hotkey Alt+E và lấy text đã chọn
-│   ├── translator.py       # Dịch thuật và lấy thông tin từ điển
-│   ├── pronunciation.py    # Xử lý phát âm (TTS)
-│   └── popup_gui.py        # GUI popup hiển thị kết quả
-├── main.py                 # File chạy chính
-├── requirements.txt        # Dependencies
-└── README.md              # File này
+│   ├── app.py              # Main application management module
+│   ├── hotkey_manager.py   # Manages hotkey and gets selected text
+│   ├── translator.py       # Translation and dictionary information
+│   ├── pronunciation.py    # Pronunciation handling (TTS)
+│   ├── popup_gui.py        # GUI popup displaying results
+│   └── config_manager.py   # Configuration management
+├── .venv/                  # Virtual environment (auto-created by uv, not committed)
+├── main.py                 # Main entry point
+├── pyproject.toml          # Project configuration (uv uses this file)
+├── requirements.txt        # Dependencies (backup, uv prioritizes pyproject.toml)
+├── config.json             # User configuration (auto-created, not committed)
+├── config.json.example     # Example configuration file
+├── .gitignore             # Git ignore file
+└── README.md              # This file
 ```
 
-## Các module chính
+## Main Modules
 
 ### `hotkey_manager.py`
-- Quản lý hotkey **Alt+E**
-- Lấy text đã chọn từ clipboard
-- Sử dụng thư viện `keyboard` và `pyperclip`
+- Manages hotkey (configurable, default: **Alt+E**)
+- Gets selected text from clipboard
+- Uses `keyboard` and `pyperclip` libraries
+
+### `config_manager.py`
+- Manages application configuration
+- Loads and saves settings from `config.json`
+- Provides default configuration if file doesn't exist
 
 ### `translator.py`
-- Dịch thuật sử dụng Google Translate API (qua `deep-translator`)
-- Tự động phát hiện ngôn ngữ
-- Lấy định nghĩa từ Free Dictionary API
+- Translation using Google Translate API (via `deep-translator`)
+- Automatic language detection
+- Gets definitions from Free Dictionary API
 
 ### `pronunciation.py`
-- Text-to-speech sử dụng `pyttsx3`
-- Hỗ trợ phát âm nhiều ngôn ngữ
-- Chạy trong thread riêng để không block UI
+- Text-to-speech using `pyttsx3`
+- Supports multiple languages
+- Runs in a separate thread to avoid blocking UI
 
 ### `popup_gui.py`
-- Giao diện popup với `tkinter`
-- Hiển thị text gốc, bản dịch, định nghĩa
-- Nút phát âm cho cả text gốc và bản dịch
-- Tự động đặt vị trí ở góc trên bên phải màn hình
+- Popup interface using `tkinter`
+- Displays original text, translation, definitions
+- Pronunciation button for both original and translated text
+- Automatically positions at top-right corner of screen
 
 ### `app.py`
-- Quản lý toàn bộ ứng dụng
-- Kết nối các module lại với nhau
-- Xử lý lifecycle của ứng dụng
+- Manages the entire application
+- Connects all modules together
+- Handles application lifecycle
 
-## Yêu cầu hệ thống
+## System Requirements
 
 - Python 3.7+
-- Windows 10/11 (đã test trên Windows)
-- Kết nối Internet (để dịch và lấy định nghĩa)
+- uv (package manager) - see installation instructions above
+- Windows 10/11 (tested on Windows)
+- Internet connection (for translation and getting definitions)
 
 ## Troubleshooting
 
-### Lỗi khi cài `keyboard` library
-- Chạy terminal với quyền Administrator
-- Hoặc dùng: `pip install keyboard --user`
+### Error installing `keyboard` library
+- Run terminal as Administrator
+- Or use: `uv pip install keyboard --user`
 
-### Hotkey không hoạt động
-- Đảm bảo ứng dụng đang chạy
-- Kiểm tra xem có ứng dụng khác đang dùng Alt+E không
-- Thử chạy với quyền Administrator
+### Error installing uv
+- On Windows: You may need to run PowerShell as Administrator
+- Or install via pip: `pip install uv`
+- See more: https://github.com/astral-sh/uv
 
-### Không lấy được text đã chọn
-- Đảm bảo bạn đã chọn text trước khi nhấn Alt+E
-- Một số ứng dụng có thể không cho phép copy (như một số game)
+### Hotkey not working
+- Make sure the application is running
+- Check if another application is using Alt+E
+- Try running as Administrator
 
-### Popup không hiện
-- Kiểm tra kết nối Internet
-- Xem log trong terminal để biết lỗi cụ thể
+### Cannot get selected text
+- Make sure you've selected text before pressing Alt+E
+- Some applications may not allow copying (like some games)
 
-## Phát triển thêm
+### Popup not showing
+- Check your Internet connection
+- Check the terminal logs for specific errors
 
-Có thể mở rộng thêm:
-- Thêm nhiều ngôn ngữ đích
-- Lưu lịch sử dịch
-- Tùy chỉnh hotkey
-- Thêm các API dịch thuật khác
-- Cải thiện UI/UX
+## Future Development
+
+Possible enhancements:
+- Add more target languages
+- Save translation history
+- Customize hotkey
+- Add other translation APIs
+- Improve UI/UX
 
 ## License
 
 MIT License
-

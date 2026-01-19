@@ -1,61 +1,61 @@
 """
-Module xử lý phát âm (text-to-speech)
+Module for handling pronunciation (text-to-speech)
 """
 import pyttsx3
 import threading
 
 
 class PronunciationManager:
-    """Quản lý phát âm text"""
+    """Manages text pronunciation"""
     
     def __init__(self):
-        """Khởi tạo PronunciationManager"""
+        """Initialize PronunciationManager"""
         self.engine = None
         self._init_engine()
     
     def _init_engine(self):
-        """Khởi tạo TTS engine"""
+        """Initialize TTS engine"""
         try:
             self.engine = pyttsx3.init()
-            # Cấu hình giọng nói
+            # Configure voice
             voices = self.engine.getProperty('voices')
             if voices:
-                # Tìm giọng nói tiếng Anh (nếu có)
+                # Find English voice (if available)
                 for voice in voices:
                     if 'english' in voice.name.lower():
                         self.engine.setProperty('voice', voice.id)
                         break
-            # Tốc độ nói
+            # Speech rate
             self.engine.setProperty('rate', 150)
-            # Âm lượng
+            # Volume
             self.engine.setProperty('volume', 0.9)
         except Exception as e:
-            print(f"Lỗi khi khởi tạo TTS engine: {e}")
+            print(f"Error initializing TTS engine: {e}")
             self.engine = None
     
     def speak(self, text, language='en'):
         """
-        Phát âm text
+        Pronounce text
         
         Args:
-            text: Text cần phát âm
-            language: Ngôn ngữ ('en' hoặc 'vi')
+            text: Text to pronounce
+            language: Language ('en' or 'vi')
         """
         if self.engine is None:
             return
         
         try:
-            # Chạy trong thread riêng để không block UI
+            # Run in separate thread to avoid blocking UI
             thread = threading.Thread(target=self._speak_thread, args=(text, language))
             thread.daemon = True
             thread.start()
         except Exception as e:
-            print(f"Lỗi khi phát âm: {e}")
+            print(f"Error pronouncing: {e}")
     
     def _speak_thread(self, text, language):
-        """Thread phát âm"""
+        """Pronunciation thread"""
         try:
-            # Cố gắng set giọng nói phù hợp với ngôn ngữ
+            # Try to set voice appropriate for language
             if self.engine:
                 voices = self.engine.getProperty('voices')
                 if voices:
@@ -71,10 +71,10 @@ class PronunciationManager:
                 self.engine.say(text)
                 self.engine.runAndWait()
         except Exception as e:
-            print(f"Lỗi trong thread phát âm: {e}")
+            print(f"Error in pronunciation thread: {e}")
     
     def stop(self):
-        """Dừng phát âm"""
+        """Stop pronunciation"""
         if self.engine:
             try:
                 self.engine.stop()
