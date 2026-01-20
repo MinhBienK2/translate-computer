@@ -4,6 +4,7 @@ Module for GUI popup displaying translation results
 import tkinter as tk
 from tkinter import ttk, font
 import threading
+import pyperclip
 
 
 class TranslationPopup:
@@ -88,7 +89,7 @@ class TranslationPopup:
         )
         original_label.pack(fill=tk.X, pady=(0, 5))
         
-        # Frame containing pronunciation button for original text
+        # Frame containing pronunciation and copy buttons for original text
         original_pron_frame = tk.Frame(main_frame, bg=bg_color)
         original_pron_frame.pack(fill=tk.X, pady=(0, 15))
         
@@ -107,6 +108,20 @@ class TranslationPopup:
             padx=5
         )
         pron_btn_original.pack(side=tk.LEFT)
+        
+        # Copy button for original text
+        copy_btn_original = tk.Button(
+            original_pron_frame,
+            text="📋",
+            command=lambda: self._copy_text(original_text),
+            bg=bg_color,
+            fg=accent_color,
+            font=('Arial', 14),
+            relief=tk.FLAT,
+            cursor='hand2',
+            padx=5
+        )
+        copy_btn_original.pack(side=tk.LEFT)
         
         # Target language
         target_lang = self.translation_info.get('target_language', 'vi').upper()
@@ -218,6 +233,15 @@ class TranslationPopup:
         # Only close if clicking on main frame (not child widgets)
         if event.widget == self.root:
             self.close()
+    
+    def _copy_text(self, text):
+        """Copy text to clipboard"""
+        try:
+            pyperclip.copy(text)
+            # Optional: Show feedback (you could add a toast notification here)
+            print(f"Copied to clipboard: {text}")
+        except Exception as e:
+            print(f"Error copying to clipboard: {e}")
     
     def _auto_pronounce(self):
         """Automatically pronounce original text when popup opens"""
