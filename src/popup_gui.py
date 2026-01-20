@@ -9,7 +9,7 @@ import threading
 class TranslationPopup:
     """Popup displaying translation results"""
     
-    def __init__(self, translation_info, pronunciation_manager, on_close_callback=None):
+    def __init__(self, translation_info, pronunciation_manager, on_close_callback=None, auto_pronounce=False):
         """
         Initialize popup
         
@@ -17,10 +17,12 @@ class TranslationPopup:
             translation_info: Dict containing translation information
             pronunciation_manager: PronunciationManager instance
             on_close_callback: Callback when popup is closed
+            auto_pronounce: Whether to automatically pronounce translation when popup opens
         """
         self.translation_info = translation_info
         self.pronunciation_manager = pronunciation_manager
         self.on_close_callback = on_close_callback
+        self.auto_pronounce = auto_pronounce
         
         self.root = None
         self._create_popup()
@@ -205,12 +207,25 @@ class TranslationPopup:
         
         # Close when pressing Escape
         self.root.bind('<Escape>', lambda e: self.close())
+        
+        # Auto pronounce if enabled
+        if self.auto_pronounce:
+            # Use after() to ensure popup is fully rendered before pronouncing
+            self.root.after(100, self._auto_pronounce)
     
     def _on_click_outside(self, event):
         """Handle click outside popup"""
         # Only close if clicking on main frame (not child widgets)
         if event.widget == self.root:
             self.close()
+    
+    def _auto_pronounce(self):
+        """Automatically pronounce original text when popup opens"""
+        if self.auto_pronounce:
+            original_text = self.translation_info.get('original_text', '')
+            source_language = self.translation_info.get('source_language', 'en')
+            if original_text:
+                self.pronunciation_manager.speak(original_text, source_language)
     
     def show(self):
         """Show popup"""

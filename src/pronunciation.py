@@ -10,28 +10,8 @@ class PronunciationManager:
     
     def __init__(self):
         """Initialize PronunciationManager"""
-        self.engine = None
-        self._init_engine()
-    
-    def _init_engine(self):
-        """Initialize TTS engine"""
-        try:
-            self.engine = pyttsx3.init()
-            # Configure voice
-            voices = self.engine.getProperty('voices')
-            if voices:
-                # Find English voice (if available)
-                for voice in voices:
-                    if 'english' in voice.name.lower():
-                        self.engine.setProperty('voice', voice.id)
-                        break
-            # Speech rate
-            self.engine.setProperty('rate', 150)
-            # Volume
-            self.engine.setProperty('volume', 0.9)
-        except Exception as e:
-            print(f"Error initializing TTS engine: {e}")
-            self.engine = None
+        self.lock = threading.Lock()  # Lock to prevent concurrent pronunciation
+        self.current_engine = None
     
     def speak(self, text, language='en'):
         """
@@ -41,7 +21,7 @@ class PronunciationManager:
             text: Text to pronounce
             language: Language ('en' or 'vi')
         """
-        if self.engine is None:
+        if not text or not text.strip():
             return
         
         try:
@@ -53,31 +33,74 @@ class PronunciationManager:
             print(f"Error pronouncing: {e}")
     
     def _speak_thread(self, text, language):
-        """Pronunciation thread"""
+        """Pronunciation thread - creates new engine instance for each call"""
+        # Use lock to prevent concurrent pronunciation
+        if not self.lock.acquire(blocking=False):
+            # If another pronunciation is running, skip this one
+            return
+        
+        engine = None
         try:
-            # Try to set voice appropriate for language
-            if self.engine:
-                voices = self.engine.getProperty('voices')
-                if voices:
+            # Create a new engine instance for this thread to avoid "run loop already started" error
+            engine = pyttsx3.init()
+            
+            # Configure voice based on language
+            voices = engine.getProperty('voices')
+            if voices:
+                voice_found = False
+                if language == 'en':
+                    # For English, prioritize English voices
+                    # Try to find English voice (check for 'english' in name)
                     for voice in voices:
                         voice_name_lower = voice.name.lower()
-                        if language == 'en' and 'english' in voice_name_lower:
-                            self.engine.setProperty('voice', voice.id)
+                        if 'english' in voice_name_lower or 'en' in voice_name_lower:
+                            engine.setProperty('voice', voice.id)
+                            voice_found = True
                             break
-                        elif language == 'vi' and 'vietnamese' in voice_name_lower:
-                            self.engine.setProperty('voice', voice.id)
+                    
+                    # If no English voice found, use first available voice (usually default is English on Windows)
+                    if not voice_found and voices:
+                        engine.setProperty('voice', voices[0].id)
+                elif language == 'vi':
+                    # For Vietnamese, try to find Vietnamese voice
+                    for voice in voices:
+                        voice_name_lower = voice.name.lower()
+                        if 'vietnamese' in voice_name_lower or 'vi' in voice_name_lower:
+                            engine.setProperty('voice', voice.id)
+                            voice_found = True
                             break
-                
-                self.engine.say(text)
-                self.engine.runAndWait()
+                    
+                    # If Vietnamese voice not found, use default
+                    if not voice_found and voices:
+                        engine.setProperty('voice', voices[0].id)
+                else:
+                    # For other languages, use default voice
+                    if voices:
+                        engine.setProperty('voice', voices[0].id)
+            
+            # Speech rate
+            engine.setProperty('rate', 150)
+            # Volume
+            engine.setProperty('volume', 0.9)
+            
+            # Pronounce text
+            engine.say(text)
+            engine.runAndWait()
+            
         except Exception as e:
             print(f"Error in pronunciation thread: {e}")
+        finally:
+            # Clean up engine
+            if engine:
+                try:
+                    engine.stop()
+                except:
+                    pass
+            # Release lock
+            self.lock.release()
     
     def stop(self):
         """Stop pronunciation"""
-        if self.engine:
-            try:
-                self.engine.stop()
-            except:
-                pass
+        # The lock will prevent new pronunciations, and existing ones will finish naturally
+        pass
 

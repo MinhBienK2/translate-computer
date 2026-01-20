@@ -14,7 +14,8 @@ class ConfigManager:
         "source_language": "en",
         "target_language": "vi",
         "popup_position": "top-right",
-        "popup_width": 450
+        "popup_width": 450,
+        "auto_pronounce": False
     }
     
     def __init__(self, config_file="config.json"):

@@ -57,10 +57,12 @@ class TranslateApp:
     def _show_popup(self, translation_info):
         """Show popup in separate thread"""
         try:
+            auto_pronounce = self.config.get("auto_pronounce", False)
             self.current_popup = TranslationPopup(
                 translation_info,
                 self.pronunciation_manager,
-                on_close_callback=self._on_popup_closed
+                on_close_callback=self._on_popup_closed,
+                auto_pronounce=auto_pronounce
             )
             self.current_popup.show()
         except Exception as e:
