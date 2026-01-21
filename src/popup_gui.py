@@ -26,6 +26,8 @@ class TranslationPopup:
         self.auto_pronounce = auto_pronounce
         
         self.root = None
+        self.main_frame = None
+        self.widgets = {}  # Store widget references for updating
         self._create_popup()
     
     def _create_popup(self):
@@ -44,8 +46,9 @@ class TranslationPopup:
         accent_color = "#4285F4"
         
         # Main frame
-        main_frame = tk.Frame(self.root, bg=bg_color, padx=20, pady=15)
-        main_frame.pack(fill=tk.BOTH, expand=True)
+        self.main_frame = tk.Frame(self.root, bg=bg_color, padx=20, pady=15)
+        self.main_frame.pack(fill=tk.BOTH, expand=True)
+        main_frame = self.main_frame
         
         # Header with close button
         header_frame = tk.Frame(main_frame, bg=header_color)
@@ -53,14 +56,14 @@ class TranslationPopup:
         
         # Source language dropdown
         source_lang = self.translation_info.get('source_language', 'en').upper()
-        lang_label = tk.Label(
+        self.widgets['lang_label'] = tk.Label(
             header_frame, 
             text=source_lang, 
             bg=header_color, 
             fg=text_color,
             font=('Arial', 10, 'bold')
         )
-        lang_label.pack(side=tk.LEFT, padx=5, pady=5)
+        self.widgets['lang_label'].pack(side=tk.LEFT, padx=5, pady=5)
         
         # Close button
         close_btn = tk.Button(
@@ -79,7 +82,7 @@ class TranslationPopup:
         
         # Original text
         original_text = self.translation_info.get('original_text', '')
-        original_label = tk.Label(
+        self.widgets['original_label'] = tk.Label(
             main_frame,
             text=original_text,
             bg=bg_color,
@@ -87,13 +90,13 @@ class TranslationPopup:
             font=('Arial', 16, 'bold'),
             anchor='w'
         )
-        original_label.pack(fill=tk.X, pady=(0, 5))
+        self.widgets['original_label'].pack(fill=tk.X, pady=(0, 5))
         
         # Frame containing pronunciation and copy buttons for original text
         original_pron_frame = tk.Frame(main_frame, bg=bg_color)
         original_pron_frame.pack(fill=tk.X, pady=(0, 15))
         
-        pron_btn_original = tk.Button(
+        self.widgets['pron_btn_original'] = tk.Button(
             original_pron_frame,
             text="🔊",
             command=lambda: self.pronunciation_manager.speak(
@@ -107,10 +110,10 @@ class TranslationPopup:
             cursor='hand2',
             padx=5
         )
-        pron_btn_original.pack(side=tk.LEFT)
+        self.widgets['pron_btn_original'].pack(side=tk.LEFT)
         
         # Copy button for original text
-        copy_btn_original = tk.Button(
+        self.widgets['copy_btn_original'] = tk.Button(
             original_pron_frame,
             text="📋",
             command=lambda: self._copy_text(original_text),
@@ -121,11 +124,11 @@ class TranslationPopup:
             cursor='hand2',
             padx=5
         )
-        copy_btn_original.pack(side=tk.LEFT)
+        self.widgets['copy_btn_original'].pack(side=tk.LEFT)
         
         # Target language
         target_lang = self.translation_info.get('target_language', 'vi').upper()
-        target_lang_label = tk.Label(
+        self.widgets['target_lang_label'] = tk.Label(
             main_frame,
             text=target_lang,
             bg=bg_color,
@@ -133,11 +136,11 @@ class TranslationPopup:
             font=('Arial', 10, 'bold'),
             anchor='w'
         )
-        target_lang_label.pack(fill=tk.X, pady=(5, 5))
+        self.widgets['target_lang_label'].pack(fill=tk.X, pady=(5, 5))
         
         # Translation
         translation = self.translation_info.get('translation', '')
-        translation_label = tk.Label(
+        self.widgets['translation_label'] = tk.Label(
             main_frame,
             text=translation,
             bg=bg_color,
@@ -146,13 +149,14 @@ class TranslationPopup:
             anchor='w',
             wraplength=400
         )
-        translation_label.pack(fill=tk.X, pady=(0, 5))
+        self.widgets['translation_label'].pack(fill=tk.X, pady=(0, 5))
         
         # Frame containing pronunciation button for translation
         translation_pron_frame = tk.Frame(main_frame, bg=bg_color)
         translation_pron_frame.pack(fill=tk.X, pady=(0, 15))
+        self.widgets['translation_pron_frame'] = translation_pron_frame
         
-        pron_btn_translation = tk.Button(
+        self.widgets['pron_btn_translation'] = tk.Button(
             translation_pron_frame,
             text="🔊",
             command=lambda: self.pronunciation_manager.speak(
@@ -166,43 +170,14 @@ class TranslationPopup:
             cursor='hand2',
             padx=5
         )
-        pron_btn_translation.pack(side=tk.LEFT)
+        self.widgets['pron_btn_translation'].pack(side=tk.LEFT)
         
         # Display definitions if available
+        self.widgets['definitions_container'] = None
+        self.widgets['definitions_frame'] = None
         definitions = self.translation_info.get('definitions')
         if definitions and 'meanings' in definitions:
-            meanings = definitions['meanings']
-            
-            # Separator
-            separator = tk.Frame(main_frame, bg="#E0E0E0", height=1)
-            separator.pack(fill=tk.X, pady=10)
-            
-            # Display meanings by part of speech
-            for part_of_speech, def_list in meanings.items():
-                # Part of speech (noun, verb, adjective, adverb)
-                pos_label = tk.Label(
-                    main_frame,
-                    text=f"**{part_of_speech}**:",
-                    bg=bg_color,
-                    fg=text_color,
-                    font=('Arial', 11, 'bold'),
-                    anchor='w'
-                )
-                pos_label.pack(fill=tk.X, pady=(5, 2))
-                
-                # Definitions
-                def_text = ", ".join(def_list[:3])  # Get maximum 3 first definitions
-                def_label = tk.Label(
-                    main_frame,
-                    text=def_text,
-                    bg=bg_color,
-                    fg=text_color,
-                    font=('Arial', 10),
-                    anchor='w',
-                    wraplength=400,
-                    justify=tk.LEFT
-                )
-                def_label.pack(fill=tk.X, pady=(0, 8))
+            self._create_definitions(main_frame, definitions, bg_color, text_color)
         
         # Calculate position and size
         self.root.update_idletasks()
@@ -242,6 +217,135 @@ class TranslationPopup:
             print(f"Copied to clipboard: {text}")
         except Exception as e:
             print(f"Error copying to clipboard: {e}")
+    
+    def _create_definitions(self, parent, definitions, bg_color, text_color):
+        """Create definitions section"""
+        meanings = definitions.get('meanings', {})
+        if not meanings:
+            return
+        
+        # Remove old definitions container if exists
+        if self.widgets.get('definitions_container'):
+            self.widgets['definitions_container'].destroy()
+        
+        # Container for separator and definitions
+        self.widgets['definitions_container'] = tk.Frame(parent, bg=bg_color)
+        self.widgets['definitions_container'].pack(fill=tk.X)
+        
+        # Separator
+        separator = tk.Frame(self.widgets['definitions_container'], bg="#E0E0E0", height=1)
+        separator.pack(fill=tk.X, pady=10)
+        
+        # Frame for definitions
+        self.widgets['definitions_frame'] = tk.Frame(self.widgets['definitions_container'], bg=bg_color)
+        self.widgets['definitions_frame'].pack(fill=tk.X)
+        
+        # Display meanings by part of speech
+        for part_of_speech, def_list in meanings.items():
+            # Part of speech (noun, verb, adjective, adverb)
+            pos_label = tk.Label(
+                self.widgets['definitions_frame'],
+                text=f"**{part_of_speech}**:",
+                bg=bg_color,
+                fg=text_color,
+                font=('Arial', 11, 'bold'),
+                anchor='w'
+            )
+            pos_label.pack(fill=tk.X, pady=(5, 2))
+            
+            # Definitions
+            def_text = ", ".join(def_list[:3])  # Get maximum 3 first definitions
+            def_label = tk.Label(
+                self.widgets['definitions_frame'],
+                text=def_text,
+                bg=bg_color,
+                fg=text_color,
+                font=('Arial', 10),
+                anchor='w',
+                wraplength=400,
+                justify=tk.LEFT
+            )
+            def_label.pack(fill=tk.X, pady=(0, 8))
+    
+    def update_content(self, translation_info, auto_pronounce=False):
+        """Update popup content without recreating the window"""
+        if not self.root:
+            return
+        
+        self.translation_info = translation_info
+        self.auto_pronounce = auto_pronounce
+        
+        # Update source language
+        source_lang = translation_info.get('source_language', 'en').upper()
+        if 'lang_label' in self.widgets:
+            self.widgets['lang_label'].config(text=source_lang)
+        
+        # Update original text
+        original_text = translation_info.get('original_text', '')
+        if 'original_label' in self.widgets:
+            self.widgets['original_label'].config(text=original_text)
+        
+        # Update pronunciation button for original text
+        if 'pron_btn_original' in self.widgets:
+            self.widgets['pron_btn_original'].config(
+                command=lambda: self.pronunciation_manager.speak(
+                    original_text,
+                    translation_info.get('source_language', 'en')
+                )
+            )
+        
+        # Update copy button for original text
+        if 'copy_btn_original' in self.widgets:
+            self.widgets['copy_btn_original'].config(
+                command=lambda: self._copy_text(original_text)
+            )
+        
+        # Update target language
+        target_lang = translation_info.get('target_language', 'vi').upper()
+        if 'target_lang_label' in self.widgets:
+            self.widgets['target_lang_label'].config(text=target_lang)
+        
+        # Update translation
+        translation = translation_info.get('translation', '')
+        if 'translation_label' in self.widgets:
+            self.widgets['translation_label'].config(text=translation)
+        
+        # Update pronunciation button for translation
+        if 'pron_btn_translation' in self.widgets:
+            self.widgets['pron_btn_translation'].config(
+                command=lambda: self.pronunciation_manager.speak(
+                    translation,
+                    translation_info.get('target_language', 'vi')
+                )
+            )
+        
+        # Update definitions
+        definitions = translation_info.get('definitions')
+        if definitions and 'meanings' in definitions:
+            self._create_definitions(
+                self.main_frame,
+                definitions,
+                "#FFFFFF",
+                "#333333"
+            )
+        elif 'definitions_container' in self.widgets and self.widgets['definitions_container']:
+            # Remove definitions if not available
+            self.widgets['definitions_container'].destroy()
+            self.widgets['definitions_container'] = None
+            self.widgets['definitions_frame'] = None
+        
+        # Update window size
+        self.root.update_idletasks()
+        height = self.root.winfo_reqheight()
+        screen_width = self.root.winfo_screenwidth()
+        width = 450
+        x = screen_width - width - 20
+        y = 20
+        self.root.geometry(f"{width}x{height}+{x}+{y}")
+        
+        # Auto pronounce if enabled
+        if self.auto_pronounce:
+            self.root.after(100, self._auto_pronounce)
     
     def _auto_pronounce(self):
         """Automatically pronounce original text when popup opens"""

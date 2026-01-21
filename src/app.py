@@ -37,12 +37,20 @@ class TranslateApp:
             # Get translation information
             translation_info = self.translator.get_translation_info(text)
             
-            # Close old popup if exists
-            if self.current_popup:
+            # If popup is already open, just update its content
+            if self.current_popup and self.current_popup.root:
                 try:
-                    self.current_popup.close()
-                except:
-                    pass
+                    auto_pronounce = self.config.get("auto_pronounce", False)
+                    self.current_popup.update_content(translation_info, auto_pronounce)
+                    return
+                except Exception as e:
+                    print(f"Error updating popup: {e}")
+                    # If update fails, close and recreate
+                    try:
+                        self.current_popup.close()
+                    except:
+                        pass
+                    self.current_popup = None
             
             # Show new popup in separate thread
             thread = threading.Thread(
