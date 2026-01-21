@@ -28,6 +28,11 @@ class TranslationPopup:
         self.root = None
         self.main_frame = None
         self.widgets = {}  # Store widget references for updating
+        
+        # Variables for drag functionality
+        self._drag_start_x = 0
+        self._drag_start_y = 0
+        
         self._create_popup()
     
     def _create_popup(self):
@@ -51,8 +56,12 @@ class TranslationPopup:
         main_frame = self.main_frame
         
         # Header with close button
-        header_frame = tk.Frame(main_frame, bg=header_color)
+        header_frame = tk.Frame(main_frame, bg=header_color, cursor='fleur')
         header_frame.pack(fill=tk.X, pady=(0, 15))
+        
+        # Bind drag events to header frame
+        header_frame.bind('<Button-1>', self._start_drag)
+        header_frame.bind('<B1-Motion>', self._on_drag)
         
         # Source language dropdown
         source_lang = self.translation_info.get('source_language', 'en').upper()
@@ -61,9 +70,14 @@ class TranslationPopup:
             text=source_lang, 
             bg=header_color, 
             fg=text_color,
-            font=('Arial', 10, 'bold')
+            font=('Arial', 10, 'bold'),
+            cursor='fleur'
         )
         self.widgets['lang_label'].pack(side=tk.LEFT, padx=5, pady=5)
+        
+        # Bind drag events to language label
+        self.widgets['lang_label'].bind('<Button-1>', self._start_drag)
+        self.widgets['lang_label'].bind('<B1-Motion>', self._on_drag)
         
         # Close button
         close_btn = tk.Button(
@@ -88,7 +102,8 @@ class TranslationPopup:
             bg=bg_color,
             fg=text_color,
             font=('Arial', 16, 'bold'),
-            anchor='w'
+            anchor='w',
+            wraplength=400
         )
         self.widgets['original_label'].pack(fill=tk.X, pady=(0, 5))
         
@@ -208,6 +223,20 @@ class TranslationPopup:
         # Only close if clicking on main frame (not child widgets)
         if event.widget == self.root:
             self.close()
+    
+    def _start_drag(self, event):
+        """Start dragging the popup"""
+        self._drag_start_x = event.x
+        self._drag_start_y = event.y
+    
+    def _on_drag(self, event):
+        """Handle dragging motion"""
+        # Calculate new position
+        x = self.root.winfo_x() + event.x - self._drag_start_x
+        y = self.root.winfo_y() + event.y - self._drag_start_y
+        
+        # Update window position
+        self.root.geometry(f"+{x}+{y}")
     
     def _copy_text(self, text):
         """Copy text to clipboard"""
@@ -334,13 +363,15 @@ class TranslationPopup:
             self.widgets['definitions_container'] = None
             self.widgets['definitions_frame'] = None
         
-        # Update window size
+        # Update window size while preserving position
         self.root.update_idletasks()
         height = self.root.winfo_reqheight()
-        screen_width = self.root.winfo_screenwidth()
         width = 450
-        x = screen_width - width - 20
-        y = 20
+        
+        # Preserve current position
+        x = self.root.winfo_x()
+        y = self.root.winfo_y()
+        
         self.root.geometry(f"{width}x{height}+{x}+{y}")
         
         # Auto pronounce if enabled
