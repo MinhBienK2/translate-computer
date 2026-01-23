@@ -1,18 +1,31 @@
-# Translate Computer - Fast Translation Application
+# Translate Computer - Translation Application
 
-An application that allows you to select any text on your computer and press **Alt+E** to quickly translate with a popup displaying the results.
+A professional translation application with a main window GUI and quick select-to-translate popup feature.
 
 ## Features
 
+### Main Window (Primary Feature)
+- ✅ Clean, modern interface with tabs (Advanced Translation, Dictionary)
+- ✅ Large input and output text areas
+- ✅ Language selection dropdowns (English ↔ Vietnamese)
+- ✅ Swap languages button
+- ✅ Multiple translation sources: Google, Microsoft, AI, IPA
+- ✅ Pronunciation buttons for source and target text
+- ✅ Copy to clipboard functionality
+- ✅ Character counter (5000 character limit)
+- ✅ Keyboard shortcut: Ctrl+Enter to translate
+- ✅ Status bar showing translation progress
+
+### Quick Translate (Secondary Feature)
 - ✅ Select text anywhere on your computer (Cursor, Word, Browser, ...)
-- ✅ Press **Alt+E** to translate instantly
+- ✅ Press hotkey (default: **F2**) to open translation popup
+- ✅ Draggable popup that remembers position
 - ✅ Popup displays:
   - Original text and translation
   - Pronunciation (text-to-speech) for both original and translated text
   - Detailed definitions (if it's a single English word)
   - Meanings by word type (noun, verb, adjective, adverb)
 - ✅ Automatic language detection
-- ✅ Beautiful, user-friendly interface
 
 ## Installation
 
@@ -65,11 +78,6 @@ uv pip install -r requirements.txt
 With `uv`, you don't need to activate a virtual environment. Just run:
 
 ```bash
-uv run python main.py
-```
-
-Or if you've already synced dependencies:
-```bash
 uv run main.py
 ```
 
@@ -77,10 +85,27 @@ uv run main.py
 
 ### How to use
 
-1. **Select text**: Use your mouse to select any text on your computer (e.g., in Cursor, Word, Browser, ...)
-2. **Press hotkey** (default: **Alt+E**): The popup will immediately appear with the translation result
-3. **Listen to pronunciation**: Click the 🔊 icon to hear the pronunciation
-4. **Close popup**: 
+#### Main Window (Primary Feature)
+
+1. **Launch the application**: Run `uv run main.py` - the main window will open automatically
+2. **Enter or paste text**: Type or paste text in the "Source text" area
+3. **Select languages**: Use the dropdown menus to select source and target languages
+4. **Swap languages**: Click the **⇄** button to reverse translation direction
+5. **Translate**: Click the "Translate" button or press **Ctrl+Enter**
+6. **Listen to pronunciation**: Click the 🔊 icons to hear text read aloud
+7. **Copy translation**: Click the 📋 icon to copy to clipboard
+8. **Switch translation source**: Click tabs (Google, Microsoft, AI, IPA) to compare translations
+9. **Exit**: Click the **X** button on the window to close the application
+
+#### Quick Translate Popup (Secondary Feature)
+
+While the main window is open, you can also use the quick translate feature:
+
+1. **Select text**: Use your mouse to select any text on your computer (anywhere)
+2. **Press hotkey** (default: **F2**): A popup will appear with the translation
+3. **Drag popup**: Click and hold the header to move the popup anywhere
+4. **Listen to pronunciation**: Click the 🔊 icon to hear the pronunciation
+5. **Close popup**: 
    - Press **Escape**
    - Click the **✕** button
    - Click outside the popup
@@ -125,10 +150,11 @@ translate-computer/
 ├── src/
 │   ├── __init__.py
 │   ├── app.py              # Main application management module
+│   ├── main_window.py      # Main window GUI (primary feature)
+│   ├── popup_gui.py        # Quick translate popup (secondary feature)
 │   ├── hotkey_manager.py   # Manages hotkey and gets selected text
 │   ├── translator.py       # Translation and dictionary information
 │   ├── pronunciation.py    # Pronunciation handling (TTS)
-│   ├── popup_gui.py        # GUI popup displaying results
 │   └── config_manager.py   # Configuration management
 ├── .venv/                  # Virtual environment (auto-created by uv, not committed)
 ├── main.py                 # Main entry point
@@ -142,36 +168,49 @@ translate-computer/
 
 ## Main Modules
 
+### `main_window.py`
+- Main window GUI using `tkinter`
+- Professional interface with tabs (Advanced Translation, Dictionary)
+- Input and output text areas
+- Language selection and swap functionality
+- Multiple translation sources (Google, Microsoft, AI, IPA)
+- Character counter and status bar
+- Primary feature of the application
+
+### `popup_gui.py`
+- Quick translate popup interface using `tkinter`
+- Displays original text, translation, definitions
+- Pronunciation buttons for both original and translated text
+- Draggable popup that remembers position
+- Secondary feature activated by hotkey
+
 ### `hotkey_manager.py`
-- Manages hotkey (configurable, default: **Alt+E**)
+- Manages hotkey (configurable, default: **F2**)
 - Gets selected text from clipboard
 - Uses `keyboard` and `pyperclip` libraries
-
-### `config_manager.py`
-- Manages application configuration
-- Loads and saves settings from `config.json`
-- Provides default configuration if file doesn't exist
+- Enables quick translate popup feature
 
 ### `translator.py`
 - Translation using Google Translate API (via `deep-translator`)
 - Automatic language detection
 - Gets definitions from Free Dictionary API
+- Supports multiple language pairs
 
 ### `pronunciation.py`
 - Text-to-speech using `pyttsx3`
 - Supports multiple languages
 - Runs in a separate thread to avoid blocking UI
 
-### `popup_gui.py`
-- Popup interface using `tkinter`
-- Displays original text, translation, definitions
-- Pronunciation button for both original and translated text
-- Automatically positions at top-right corner of screen
+### `config_manager.py`
+- Manages application configuration
+- Loads and saves settings from `config.json`
+- Provides default configuration if file doesn't exist
 
 ### `app.py`
 - Manages the entire application
 - Connects all modules together
 - Handles application lifecycle
+- Coordinates main window and popup features
 
 ## System Requirements
 

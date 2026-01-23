@@ -1,11 +1,12 @@
 """
 Main application management module
 """
-from hotkey_manager import HotkeyManager
-from translator import Translator
-from pronunciation import PronunciationManager
-from popup_gui import TranslationPopup
-from config_manager import ConfigManager
+from features.hotkey_manager import HotkeyManager
+from core.translator import Translator
+from core.pronunciation import PronunciationManager
+from ui.popup_gui import TranslationPopup
+from ui.main_window import MainWindow
+from core.config_manager import ConfigManager
 import threading
 
 
@@ -20,6 +21,11 @@ class TranslateApp:
             target_lang=self.config.get_target_language()
         )
         self.pronunciation_manager = PronunciationManager()
+        
+        # Main window (primary feature)
+        self.main_window = None
+        
+        # Hotkey manager (secondary feature - for quick popup translation)
         hotkey = self.config.get_hotkey()
         self.hotkey_manager = HotkeyManager(self.on_text_selected, hotkey=hotkey)
         self.current_popup = None
@@ -80,40 +86,64 @@ class TranslateApp:
         """Callback when popup is closed"""
         self.current_popup = None
     
+    def _on_main_window_closed(self):
+        """Callback when main window is closed - exit entire application"""
+        print("\nMain window closed. Exiting application...")
+        self.stop()
+    
     def start(self):
         """Start application"""
+        print("=" * 60)
+        print("Translate Computer - Starting...")
+        print("=" * 60)
+        
+        # Start hotkey manager in background (secondary feature)
         hotkey = self.config.get_hotkey()
         hotkey_display = hotkey.upper().replace('+', '+')
-        print("=" * 60)
-        print("Translation application has started!")
-        print("=" * 60)
-        print("Instructions:")
-        print("1. Select text on screen (anywhere)")
-        print(f"2. Press {hotkey_display} to translate")
-        print("3. Press Escape or click outside to close popup")
-        print(f"\nCurrent hotkey: {hotkey_display} (from config.json)")
-        print("To change hotkey, edit config.json file and restart the application.")
-        print("\nPress Ctrl+C to exit the application.\n")
-        
+        print(f"✓ Hotkey feature enabled: Press {hotkey_display} to translate selected text")
         self.hotkey_manager.start()
         
-        try:
-            # Keep application running
-            import time
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            self.stop()
+        # Create and show main window (primary feature)
+        print("✓ Opening main window...")
+        self.main_window = MainWindow(
+            self.translator,
+            self.pronunciation_manager,
+            self.config,
+            on_close_callback=self._on_main_window_closed
+        )
+        
+        # Show main window (this will block until window is closed)
+        self.main_window.show()
     
     def stop(self):
         """Stop application"""
         print("\nStopping application...")
-        self.hotkey_manager.stop()
-        self.pronunciation_manager.stop()
+        
+        # Stop hotkey manager
+        if self.hotkey_manager:
+            self.hotkey_manager.stop()
+        
+        # Stop pronunciation manager
+        if self.pronunciation_manager:
+            self.pronunciation_manager.stop()
+        
+        # Close popup if open
         if self.current_popup:
             try:
                 self.current_popup.close()
             except:
                 pass
+        
+        # Close main window if open
+        if self.main_window:
+            try:
+                self.main_window.close()
+            except:
+                pass
+        
         print("Application has stopped.")
+        
+        # Force exit
+        import sys
+        sys.exit(0)
 

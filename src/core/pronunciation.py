@@ -69,7 +69,7 @@ class PronunciationManager:
                             engine.setProperty('voice', voice.id)
                             voice_found = True
                             break
-                    
+                
                     # If Vietnamese voice not found, use default
                     if not voice_found and voices:
                         engine.setProperty('voice', voices[0].id)
